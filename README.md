@@ -1,3 +1,10 @@
+Esta aplicación móvil permite a los usuarios gestionar proyectos y tareas de manera eficiente. Con ella, los usuarios pueden crear proyectos, asignar tareas a diferentes miembros del equipo, establecer fechas de inicio y finalización, y visualizar las tareas en diferentes formatos, como listas y tableros Kanban. El objetivo principal es mejorar la organización y el seguimiento de las tareas dentro de un equipo, asegurando que los proyectos avancen de manera efectiva y dentro de los plazos establecidos.
+
+# Objetivos
+- Facilitar la asignación y seguimiento de tareas dentro de un equipo.
+- Proporcionar una interfaz intuitiva para gestionar proyectos, fechas límite y responsables.
+- Permitir a los usuarios visualizar las tareas en diferentes formatos para adaptarse a diversas necesidades.
+
 # Metodologia elegida
 ## Metodología para el desarrollo de software: Scrum
 Para el desarrollo de la aplicación móvil que permitirá la gestión de proyectos y tareas, se
@@ -44,6 +51,10 @@ Por último, la comunidad de React Native es enorme y siempre está creciendo. E
 significa que tenemos acceso a muchos recursos, herramientas y soluciones para los
 problemas que podamos enfrentar. Además, nos asegura que el framework se mantenga
 actualizado y siga las mejores prácticas.
+
+# Flujo de Trabajo
+ **Clonar el repositorio**: Para comenzar a trabajar, clona el repositorio utilizando el siguiente comando:
+
 
 # Esquema de versiona miento
 El esquema de versiona miento que se va a utilizar para el desarrollo del proyecto será con
