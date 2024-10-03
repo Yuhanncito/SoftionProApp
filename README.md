@@ -84,11 +84,11 @@ Para garantizar una integración continua y un despliegue automatizado, se utili
 # Instrucciones para Clonar el Repositorio, Instalar Dependencias y Ejecutar el Proyecto
 ## Instrucciones de Instalación
 
-## Clonar el Repositorio
+- Clonar el Repositorio
 git clone https://github.com/usuario/repositorio.git
 cd repositorio
-## Instalar Dependencias
+- Instalar Dependencias
 npm install
-## Ejecutar la Aplicación
+- Ejecutar la Aplicación
 npm start
 
