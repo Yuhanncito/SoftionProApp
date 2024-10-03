@@ -47,14 +47,13 @@ Esto es súper importante para una app de gestión de proyectos, donde se maneja
 interacciones y actualizaciones de datos en tiempo real. Al usar componentes nativos, nos
 aseguramos de que la experiencia sea fluida y rápida, lo que es fundamental para mantener
 la eficiencia en la gestión de tareas.
-Por último, la comunidad de React Native es enorme y siempre está creciendo. Esto
-significa que tenemos acceso a muchos recursos, herramientas y soluciones para los
-problemas que podamos enfrentar. Además, nos asegura que el framework se mantenga
-actualizado y siga las mejores prácticas.
+
+# Control de versiones seleccionada
+Para el control de versiones se utiliza **Git** junto con **GitHub** como plataforma de alojamiento de repositorios.
 
 # Flujo de Trabajo
  **Clonar el repositorio**: Para comenzar a trabajar, clona el repositorio utilizando el siguiente comando:
-
+  git clone https://github.com/usuario/repositorio.git
 
 # Esquema de versiona miento
 El esquema de versiona miento que se va a utilizar para el desarrollo del proyecto será con
@@ -66,3 +65,30 @@ como feature/nueva-funcionalidad.
 Si se necesita corregir algún error en producción, se creara una rama hotfix/ desde main, y
 una vez corregido, esa rama se fusionará tanto en main como en develop, para mantener el
 código sincronizado.
+
+#Ramas: El flujo de trabajo se basa en las siguientes ramas:
+main: Contiene la versión estable y lista para producción.
+develop: Contiene las últimas características en desarrollo.
+feature/: Para cada nueva característica, se crea una rama con este prefijo, seguida de una breve descripción.
+hotfix/: Para correcciones rápidas en la versión en producción.
+
+# Estrategia de Despliegue y CI/CD
+Para garantizar una integración continua y un despliegue automatizado, se utiliza un flujo de **CI/CD** basado en **GitHub Actions**.
+## Entornos
+- **Desarrollo**: Las nuevas características se prueban en este entorno antes de ser fusionadas en la rama `main`.
+- **Producción**: Una vez que el código ha pasado por todas las pruebas, se despliega automáticamente en el entorno de producción.
+## Proceso CI/CD
+1. **Integración Continua (CI)**: Cada vez que se crea un pull request o se realizan cambios en la rama `develop`, se ejecutan pruebas automáticas para asegurar que el código no introduce nuevos errores.
+2. **Despliegue Continuo (CD)**: Cuando el código es aprobado y fusionado en `main`, se despliega automáticamente en el entorno de producción.
+
+# Instrucciones para Clonar el Repositorio, Instalar Dependencias y Ejecutar el Proyecto
+## Instrucciones de Instalación
+
+## Clonar el Repositorio
+git clone https://github.com/usuario/repositorio.git
+cd repositorio
+## Instalar Dependencias
+npm install
+## Ejecutar la Aplicación
+npm start
+
