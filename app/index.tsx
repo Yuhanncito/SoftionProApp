@@ -53,7 +53,7 @@ const index = () => {
           showModal('Inicio de sesión exitoso', json.message);
           setTimeout(() => {
             router.navigate('/verify-email');
-            router.setParams({ email: user.email , option: 'login' });
+            router.setParams({ email: user.email , option: 'Login' });
             hideModal();
           }, 2000); // Navega a la pantalla 'VerifyEmail' tras 2 segundos
         } else {
@@ -138,7 +138,7 @@ const index = () => {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.forgotPassword} onPress={() => router.navigate('/forgot-password')} >
+            <TouchableOpacity style={styles.forgotPassword} onPress={() => router.navigate('/ForgotPassword')} >
               <Text style={styles.link}>¿Olvidaste tu contraseña?</Text>
             </TouchableOpacity>
 

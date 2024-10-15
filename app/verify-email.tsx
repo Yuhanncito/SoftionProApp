@@ -17,9 +17,9 @@ export const VerifyEmail = async (data : any) => {
     });
     const result = await response.json();
     return result;
-  } catch (error) {
-    console.log(error);
-    return { error: 'Error al realizar la verificación' };
+  } catch (errors) {
+    console.log(errors);
+    return { error: 'Error al realizar la verificación', errors};
   }
 };
 
@@ -55,13 +55,15 @@ const VerificationScreen = () => {
 
     const result = await VerifyEmail(dataBody);
 
+    console.log(result)
+
     setLoading(false);
 
     if (result.error || result.message !== 'ok') {
-      showModal('Error', result.error || result.message);
+      showModal('Error',` ${result.errors} ,  ${result.error}` || result.message);
     } else {
       data.option !== 'Login' ?
-      [router.push('/restore-password'), router.setParams({ email: data.email, token: result.token })]:
+      [router.push('/RestorePassword'), router.setParams({ email: data.email, token: result.token })]:
       [router.push('/(home)'), router.setParams({ email: data.email, token: result.token })]
     }
   };
