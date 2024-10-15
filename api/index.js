@@ -1,0 +1,136 @@
+export const BASEURL = 'https://softion-api-v3.vercel.app/api';
+
+
+export const RegisterFunction = async (data) => {
+    try {
+        const response = await fetch(`${BASEURL}/auth/signup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data), // Convierte los datos a JSON
+        });
+
+        const result = await response.json(); // Parsear el resultado
+        
+        if(result.message !== 'ok'){
+            return { success: false, message: result.message }; 
+        }
+
+        // Si todo sale bien, retornamos el resultado
+        return { success: true, data: result };
+
+    } catch (error) {
+        return { success: false, message: 'Error en la solicitud de registro' };
+    }
+};
+
+export const getUser = async (email) => {
+    try {
+        const response = await fetch(`${BASEURL}/auth/${email}`, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json(); // Parsear el resultado
+
+        if (result.message !== 'ok') {
+            
+            return { success: false, message: 'Error al obtener el usuario' }; // Maneja el error si la respuesta no es exitos
+        }
+
+        // Esto, en la parte de result, retorna key y question, que "key" seria la clave de la pregunta y "question" la pregunta en sí
+
+        return { success: true, data: result.data[0] };
+
+    } catch (error) {
+        console.error("Error en la solicitud:", error);
+        return { success: false, message: 'Error en la solicitud de usuario' };
+    }
+};
+
+export const sendEmail = async (data) => {
+    try{
+        const response = await fetch(`${BASEURL}/auth/forgotPassword`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        const result = await response.json()
+        if(result.message !== 'correcto'){
+            return {success:false, message:'Error al enviar correo'}
+        }
+
+        return { success:true, data: result }
+
+    }catch(error){
+        return { success:false, message: "Ah ocurrido un error en el Email" }
+    }
+}
+
+export const VerifyQuestion = async (data) => {
+    try{
+        const response = await fetch(`${BASEURL}/auth/secret`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        const result = await response.json()
+        if(result.message !== 'ok'){
+            return {success:false, message:'Error al validar datos'}
+        }
+        return { success : true }
+
+    }catch(error){
+        return { success:false, message: "Ah ocurrido un error en el Email" }
+    }
+}
+
+export const updatePassword = async (token, data) => {
+    try{
+        const response = await fetch(`${BASEURL}/auth/forgotPassword/update`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': token
+            },
+            body: JSON.stringify(data)
+        })
+        const result = await response.json()
+        if(result.message !== 'ok'){
+            return {success:false, message:'Error al validar datos'}
+        }
+        return { success : true, token:result.token }
+    }catch(error){
+        return { success:false, message: "Ah ocurrido un error en el Email" }
+    }
+}  
+
+export const getUserData = async (token) => {
+    try {
+      const response = await fetch(`${BASEURL}/auth/`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-access-token': token // Pasar correctamente el token en el header
+        }
+      });
+      const result = await response.json();
+      
+      // Revisa cómo está estructurada la respuesta
+      console.log(result);
+  
+      if (result && result.user) {
+        return { user: result.user }; // Retorna solo el usuario si está presente
+      } else {
+        return { error: 'No se pudo obtener el usuario' };
+      }
+    } catch (error) {
+      console.error('Error en getUserData:', error);
+      return { error: 'Error al obtener los datos del usuario' };
+    }
+  };
