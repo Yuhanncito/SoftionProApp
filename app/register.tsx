@@ -100,7 +100,7 @@ const Register = () => {
   
       if (res.success) {
         Alert.alert('Registro exitoso', res.data.message || 'Registro completado con éxito');
-        router.push('verify-email');
+        router.push('/verify-email');
         router.setParams({ ...user, option: 'register' });
       } else {
         Alert.alert('Error', res.message);
@@ -198,7 +198,7 @@ const Register = () => {
             <Text style={styles.label}>Pregunta de seguridad</Text>
             <SelectList
               data={questions}
-              setSelected={(itemValue) => setUser({ ...user, secret: itemValue })}
+              setSelected={(itemValue:any) => setUser({ ...user, secret: itemValue })}
               placeholder="Selecciona tu pregunta"
               search={false}
               boxStyles={styles.picker} // Estilo personalizado para el dropdown

@@ -113,24 +113,72 @@ export const updatePassword = async (token, data) => {
 
 export const getUserData = async (token) => {
     try {
-      const response = await fetch(`${BASEURL}/auth/`, {
+    const response = await fetch(`${BASEURL}/auth/`, {
         headers: {
-          'Content-Type': 'application/json',
+        'Content-Type': 'application/json',
           'x-access-token': token // Pasar correctamente el token en el header
         }
-      });
-      const result = await response.json();
-      
+    });
+    const result = await response.json();
+    
       // Revisa cómo está estructurada la respuesta
-      console.log(result);
-  
-      if (result && result.user) {
+    console.log(result);
+
+    if (result && result.user) {
         return { user: result.user }; // Retorna solo el usuario si está presente
-      } else {
+    } else {
         return { error: 'No se pudo obtener el usuario' };
-      }
-    } catch (error) {
-      console.error('Error en getUserData:', error);
-      return { error: 'Error al obtener los datos del usuario' };
     }
-  };
+    } catch (error) {
+    console.error('Error en getUserData:', error);
+    return { error: 'Error al obtener los datos del usuario' };
+    }
+};
+
+export const getWorkSpaces = async (data) => {
+    try{
+        const response = await fetch(`${BASEURL}/workspace`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': data
+            }
+        })
+        const result = await response.json()
+        return result
+    }catch(error){
+        console.log(error)
+        return {}
+    }
+}
+
+export const getWorkSpacesById = async (data, id) => {
+    try{
+        const response = await fetch(`${BASEURL}/workspace/${id}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': data
+            }
+        })
+        const result = await response.json()
+        return result
+    }catch(error){
+        console.log(error)
+        return {}
+    }
+}
+
+export const getProjects = async (user, id) => {
+    try{
+        const response = await fetch(`${BASEURL}/projects/${id}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': user
+            }
+        })
+        const result = await response.json()
+        return result.data
+    }catch(error){
+        console.log(error)
+        return {}
+    }
+}

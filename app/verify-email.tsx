@@ -4,8 +4,9 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, Dimensions,
 import { Modal, Portal, Provider } from 'react-native-paper';
 import { BASEURL } from '../api';
 import { router, useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Importamos AsyncStorage para guardar el token
 
-export const VerifyEmail = async (data : any) => {
+export const VerifyEmail = async (data: any) => {
   try {
     const action = (data.option === "register") ? 'signup' : (data.option === "Login") ? 'signin' : 'forgotPassword';
     const response = await fetch(`${BASEURL}/auth/${action}/confirm`, {
@@ -19,7 +20,7 @@ export const VerifyEmail = async (data : any) => {
     return result;
   } catch (errors) {
     console.log(errors);
-    return { error: 'Error al realizar la verificación', errors};
+    return { error: 'Error al realizar la verificación', errors };
   }
 };
 
@@ -32,7 +33,7 @@ const VerificationScreen = () => {
 
   const data = useLocalSearchParams();
 
-  const showModal = (title : string , message : string ) => {
+  const showModal = (title: string, message: string) => {
     setModalTitle(title);
     setModalMessage(message);
     setVisible(true);
@@ -55,17 +56,38 @@ const VerificationScreen = () => {
 
     const result = await VerifyEmail(dataBody);
 
-    console.log(result)
+    console.log(result);
 
     setLoading(false);
 
     if (result.error || result.message !== 'ok') {
-      showModal('Error',` ${result.errors} ,  ${result.error}` || result.message);
+      showModal('Error', `${result.errors} ,  ${result.error}` || result.message);
     } else {
-      data.option !== 'Login' ?
-      [router.push('/RestorePassword'), router.setParams({ email: data.email, token: result.token })]:
-      [router.push('/(home)'), router.setParams({ email: data.email, token: result.token })]
+      try {
+        const token = result.token;
+        const expiresIn = 86400; // 24 horas en segundos
+        const expirationTime = Date.now() + expiresIn * 1000; // Hora actual + 24 horas en milisegundos
+    
+        // Guardamos el token y la fecha de expiración
+        await AsyncStorage.setItem('authToken', token);
+        await AsyncStorage.setItem('expirationTime', expirationTime.toString());
+    
+        if (data.option !== 'Login') {
+          router.push('/RestorePassword');
+          router.setParams({ email: data.email, token: result.token });
+        } else {
+          router.push({
+            pathname: '/(home)/Hom',
+            params: {
+              token: result.token, // Mandamos el token en los parámetros
+            },
+          });
+        }
+      } catch (storageError) {
+        showModal('Error', 'Error al guardar el token en el dispositivo.');
+      }
     }
+    
   };
 
   return (

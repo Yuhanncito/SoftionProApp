@@ -4,12 +4,15 @@ import Icon from 'react-native-vector-icons/Ionicons'; // Para los iconos
 export default function RootLayout() {
   return (
 
+
 <Tabs
 screenOptions={({ route }) => ({
+  gestureEnabled: false,  // Deshabilitar gestos de retroceso
+  headerShown: false,     // Ocultar encabezados si lo deseas
   tabBarIcon: ({ focused, color, size }) => {
     let iconName;
 
-    if (route.name === 'index') {
+    if (route.name === 'Hom') {
       iconName = focused ? 'home' : 'home-outline';
     } else if (route.name === 'Notifications') {
       iconName = focused ? 'notifications' : 'notifications-outline';
@@ -24,7 +27,7 @@ screenOptions={({ route }) => ({
   headerShown: false, // Ocultar el header
 })}
 >
-      <Tabs.Screen name="index" />
+      <Tabs.Screen name="Hom" />
       <Tabs.Screen name="Notifications"  />
       <Tabs.Screen name="Profile" />
 </Tabs>

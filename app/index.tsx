@@ -6,6 +6,7 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, Dimensions,
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BASEURL } from '../api';
 import { router } from 'expo-router';
+import OrganismoCard from '@/components/organismos/organismo_card';
 
 const index = () => {
 
@@ -23,11 +24,13 @@ const index = () => {
   const [count, setCount] = useState(3);
   const [countIntent, setCountIntent] = useState(1);
 
+ 
+
   const [visible, setVisible] = useState(false); // Controla el modal
   const [modalMessage, setModalMessage] = useState(''); // Mensaje del modal
   const [modalTitle, setModalTitle] = useState(''); 
 
-  const showModal = (title, message) => {
+  const showModal = (title: any, message:any) => {
     setModalTitle(title);
     setModalMessage(message);
     setVisible(true);
@@ -105,6 +108,9 @@ const index = () => {
           </View>
 
           <View style={styles.whiteBox}>
+
+ 
+
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Correo</Text>
               <TextInput
@@ -138,6 +144,10 @@ const index = () => {
               </View>
             </View>
 
+
+
+
+
             <TouchableOpacity style={styles.forgotPassword} onPress={() => router.navigate('/ForgotPassword')} >
               <Text style={styles.link}>¿Olvidaste tu contraseña?</Text>
             </TouchableOpacity>
@@ -150,13 +160,14 @@ const index = () => {
 
             <View style={styles.footer}>
               <Text>No tienes una cuenta? </Text>
-              <TouchableOpacity onPress={() => router.push('/register')}>
+              <TouchableOpacity onPress={() => router.navigate('/register')}>
                 <Text style={styles.link}>Regístrate</Text>
               </TouchableOpacity>
             </View>
           </View>
 
           <StatusBar barStyle="dark-content" />
+          
         </View>
       </ScrollView>
     </Provider>
