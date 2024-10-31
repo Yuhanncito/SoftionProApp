@@ -10,7 +10,7 @@ const IndexScreen = () => {
   const router = useRouter(); // Usar el hook de Expo Router
 
   // Estado para almacenar los workspaces obtenidos desde la API
-  const [workspaces, setWorkspaces] = useState(null); // Inicializa como un array vacío
+  const [workspaces, setWorkspaces] = useState([]); // Cambiar null a []
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // Estado para el indicador de carga
 
@@ -38,7 +38,7 @@ const IndexScreen = () => {
 
   // useEffect para llamar a la API cuando el componente se monta
   useEffect(() => {
-    // Función asíncrona para obtener los datos de workspaces
+    // Función asíncrona para obtener los datos de workspaces  // Función asíncrona para obtener los datos de workspaces
     const fetchWorkspaces = async () => {
       try {
         // Recupera el token desde AsyncStorage
@@ -51,9 +51,9 @@ const IndexScreen = () => {
         
         // Llamada a la API usando el token recuperado
         const data = await getWorkSpaces(token); 
-        console.log("data",data[2].projects);
+        console.log("data",data[0].projects);
         setWorkspaces(data);
-       
+      
       } catch (error) {
         console.log("Error fetching workspaces:", error);
         setWorkspaces([]); // Setear a un array vacío en caso de error
@@ -89,6 +89,7 @@ const IndexScreen = () => {
     fetchWorkspaces(); // Ejecutar la función para obtener los workspaces
     fetchUser();
   }, []);
+
   
 
   // Si aún está cargando, mostrar un indicador de carga
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#007AFF', // Fondo azul
     padding: 15,
-    paddingTop: 70, // Espacio en la parte superior para el header
+    paddingTop: 60, // Espacio en la parte superior para el header
     flexDirection: 'row',
     alignItems: 'center',
   },

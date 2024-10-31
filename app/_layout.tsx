@@ -13,7 +13,7 @@ export default function RootLayout() {
         const storedToken = await AsyncStorage.getItem('authToken');
         if (storedToken) {
           setToken(storedToken); // Guardamos el token en el estado
-          router.push('/(home)home'); // Si hay token, redirigimos a home
+          router.push('/(home)/Hom'); // Si hay token, redirigimos a home
         }
       } catch (error) {
         console.log('Error al verificar el token:', error);
@@ -26,7 +26,7 @@ export default function RootLayout() {
         
     checkToken(); // Verificamos el token al inicio
   }, [token]);
-     
+
 
   if (loading) {
     return (
@@ -35,7 +35,7 @@ export default function RootLayout() {
       </View>
     );
   }
-   
+
   return ( token ? <StackPrivate /> : <StactPublic /> );
 }
 
@@ -51,7 +51,7 @@ const StactPublic = () => {
     </Stack>
   );
 };
-
+     
 const StackPrivate = () => {
   return (
     <Stack screenOptions={{ headerShown: false }} initialRouteName="/(home)" >

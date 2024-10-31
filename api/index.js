@@ -182,3 +182,58 @@ export const getProjects = async (user, id) => {
         return {}
     }
 }
+
+export const createNewProject = async (user, data) => {
+    try{
+        const response = await fetch(`${BASEURL}/projects`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': user
+            },
+            body: JSON.stringify(data)
+        })
+        const result = await response.json()
+        return result
+    }catch(error){
+        console.log(error)
+        return {}
+    }
+}
+
+export const acceptInvitation = async (user, token) => {
+    try{
+        const response = await fetch(`${BASEURL}/invitation/${user}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': token
+            }
+        })
+        const result = await response.json()
+        console.log(result)
+        return result
+    }catch(error){
+        console.log(error)
+        return {}
+    }
+}
+
+export const getInvitations = async (user, token) => {
+    try {
+      console.log(`Fetching invitations for user: ${user} with token: ${token}`);
+      const response = await fetch(`${BASEURL}/invitation/${user}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-access-token': token
+        }
+      });
+      const result = await response.json();
+      console.log('Invitations result:', result);
+      return result;
+    } catch (error) {
+      console.log('Error fetching invitations:', error);
+      return {};
+    }
+  };
+  

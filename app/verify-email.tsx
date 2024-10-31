@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { Modal, Portal, Provider } from 'react-native-paper';
-import { BASEURL } from '../api';
+import { BASEURL, getUser } from '../api';
 import { router, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Importamos AsyncStorage para guardar el token
 
@@ -46,49 +46,65 @@ const VerificationScreen = () => {
       showModal('Error', 'El código de verificación no puede estar vacío');
       return;
     }
-
+  
     setLoading(true);
-
+  
     const dataBody = {
       secretCode: verificationCode,
       ...data
     };
-
+  
     const result = await VerifyEmail(dataBody);
-
-    console.log(result);
-
+  
+    console.log("Resultado de la API:", result); // Verifica la estructura de la respuesta
+  
     setLoading(false);
-
+  
     if (result.error || result.message !== 'ok') {
       showModal('Error', `${result.errors} ,  ${result.error}` || result.message);
     } else {
       try {
         const token = result.token;
+        const userData = await getUser(data.email);
+        const userId = userData.data._id;
+        
+        if (!token) {
+          console.log("Token no válido:", token);
+          showModal("Error", "Token no válido");
+          return;
+        }
+  
+        if (!userId) {
+          console.log("ID de usuario no válido:", userId);
+          showModal("Error", "ID de usuario no válido");
+          return;
+        }
+  
         const expiresIn = 86400; // 24 horas en segundos
-        const expirationTime = Date.now() + expiresIn * 1000; // Hora actual + 24 horas en milisegundos
-    
-        // Guardamos el token y la fecha de expiración
+        const expirationTime = Date.now() + expiresIn * 1000;
+  
         await AsyncStorage.setItem('authToken', token);
+        await AsyncStorage.setItem('userId', userId);
         await AsyncStorage.setItem('expirationTime', expirationTime.toString());
-    
+  
+        // Navegación después de almacenar
         if (data.option !== 'Login') {
           router.push('/RestorePassword');
-          router.setParams({ email: data.email, token: result.token });
+          router.setParams({ email: data.email, token, userId });
         } else {
           router.push({
             pathname: '/(home)/Hom',
-            params: {
-              token: result.token, // Mandamos el token en los parámetros
-            },
+            params: { token, userId },
           });
         }
-      } catch (storageError) {
-        showModal('Error', 'Error al guardar el token en el dispositivo.');
+      } catch (error) {
+        console.log("Error al guardar en AsyncStorage:", error);
+        showModal("Error", "Error al guardar el token y el ID en el dispositivo.");
       }
     }
-    
   };
+  
+
 
   return (
     <Provider>
