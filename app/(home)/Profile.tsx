@@ -2,29 +2,58 @@ import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, Modal, Aler
 import React, { useState, useEffect } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router'; // Importamos Expo Router
+import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserData } from '../../api'; // Asegúrate de importar correctamente la función
+
 const Profile = () => {
-  const [modalVisible, setModalVisible] = useState(false); // Estado para controlar la visibilidad del modal
-  const [profileImage, setProfileImage] = useState('https://image.cdn2.seaart.ai/2023-06-29/39615905747013/4c7b80cbc5afe7b10d0a6d39ec94b73798b652d7_high.webp'); // Imagen de perfil
+  const [modalVisible, setModalVisible] = useState(false);
+  const [profileImage, setProfileImage] = useState('https://image.cdn2.seaart.ai/2023-06-29/39615905747013/4c7b80cbc5afe7b10d0a6d39ec94b73798b652d7_high.webp');
+  const [name, setName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
 
   useEffect(() => {
-    // Función para manejar el retroceso a la pantalla anterior
     const backAction = () => {
-      router.back(); // Navegar a la pantalla anterior
-      return true;   // Evitar el comportamiento por defecto de salir de la app
+      router.back();
+      return true;
     };
 
-    // Agregar el listener de retroceso
     const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
-
-    return () => backHandler.remove(); // Eliminar el listener cuando se desmonte el componente
+    return () => backHandler.remove();
   }, [router]);
 
-  // Función para abrir la cámara o galería
-  const handleImagePick = async (option) => {
-    setModalVisible(false); // Cerrar modal
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = await AsyncStorage.getItem('authToken');
+        if (!token) {
+          console.log("Token no encontrado.");
+          return;
+        }
+        console.log("Token encontrado:", token); // Muestra el token en la consola para verificar
 
+        // Llamada a la API para obtener los datos del usuario
+        const data = await getUserData(token);
+        if (data && data.user) {
+          setName(data.user.name);
+          setLastName(data.user.lastName);
+          setEmail(data.user.email);
+
+          console.log("Nombre:", data.user.name);
+          console.log("Apellidos:", data.user.lastName);
+          console.log("Correo:", data.user.email);
+        }
+      } catch (error) {
+        console.log("Error al obtener datos del usuario:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const handleImagePick = async (option) => {
+    setModalVisible(false);
     if (option === 'camera') {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status === 'granted') {
@@ -34,7 +63,7 @@ const Profile = () => {
           quality: 1,
         });
         if (!result.canceled) {
-          setProfileImage(result.assets[0].uri); // Actualiza la imagen con la seleccionada
+          setProfileImage(result.assets[0].uri);
         }
       } else {
         Alert.alert('Permiso de cámara denegado');
@@ -48,21 +77,20 @@ const Profile = () => {
           quality: 1,
         });
         if (!result.canceled) {
-          setProfileImage(result.assets[0].uri); // Actualiza la imagen con la seleccionada
+          setProfileImage(result.assets[0].uri);
         }
       } else {
         Alert.alert('Permiso de galería denegado');
       }
     } else if (option === 'remove') {
-      setProfileImage('https://via.placeholder.com/100'); // Restablecer imagen a un placeholder
+      setProfileImage('https://via.placeholder.com/100');
     }
   };
 
-  // Función para cerrar sesión
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem('authToken'); // Eliminar el token de sesión
-      router.replace('/'); // Redirigir al login
+      await AsyncStorage.removeItem('authToken');
+      router.replace('/');
     } catch (error) {
       Alert.alert('Error', 'Hubo un problema al cerrar sesión');
     }
@@ -70,7 +98,6 @@ const Profile = () => {
 
   return (
     <View style={styles.container}>
-      {/* Modal para seleccionar opciones */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -82,54 +109,37 @@ const Profile = () => {
         <View style={styles.modalContainer}>
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>Seleccionar opción</Text>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => handleImagePick('camera')}
-            >
+            <TouchableOpacity style={styles.modalButton} onPress={() => handleImagePick('camera')}>
               <Text style={styles.modalButtonText}>Cámara</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => handleImagePick('gallery')}
-            >
+            <TouchableOpacity style={styles.modalButton} onPress={() => handleImagePick('gallery')}>
               <Text style={styles.modalButtonText}>Galería</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.removeButton]}
-              onPress={() => handleImagePick('remove')}
-            >
+            <TouchableOpacity style={[styles.modalButton, styles.removeButton]} onPress={() => handleImagePick('remove')}>
               <Text style={[styles.modalButtonText, styles.removeButtonText]}>Eliminar</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.cancelButton]}
-              onPress={() => setModalVisible(!modalVisible)}
-            >
+            <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setModalVisible(!modalVisible)}>
               <Text style={styles.modalButtonText}>Cancelar</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* Encabezado con imagen de perfil */}
       <View style={styles.header}>
         <View style={styles.profileImageContainer}>
-          <Image
-            source={{ uri: profileImage }} // Imagen de perfil seleccionada
-            style={styles.profileImage}
-          />
+          <Image source={{ uri: profileImage }} style={styles.profileImage} />
           <TouchableOpacity style={styles.cameraIcon} onPress={() => setModalVisible(true)}>
             <Icon name="camera" size={20} color="black" />
           </TouchableOpacity>
         </View>
-        <Text style={styles.userName}>Gize Yuhann Martinez</Text>
+        <Text style={styles.userName}>{name} {lastName}</Text>
       </View>
 
-      {/* Información de perfil */}
       <View style={styles.infoContainer}>
         <View style={styles.infoRow}>
           <Text style={styles.label}>Nombre</Text>
           <View style={styles.inputContainer}>
-            <TextInput style={styles.input} value="Gize" editable={false} />
+            <TextInput style={styles.input} value={name} editable={false} />
             <TouchableOpacity>
               <Icon name="pencil" size={20} color="gray" />
             </TouchableOpacity>
@@ -138,7 +148,7 @@ const Profile = () => {
         <View style={styles.infoRow}>
           <Text style={styles.label}>Apellidos</Text>
           <View style={styles.inputContainer}>
-            <TextInput style={styles.input} value="Yuhann Martinez" editable={false} />
+            <TextInput style={styles.input} value={lastName} editable={false} />
             <TouchableOpacity>
               <Icon name="pencil" size={20} color="gray" />
             </TouchableOpacity>
@@ -147,14 +157,20 @@ const Profile = () => {
         <View style={styles.infoRow}>
           <Text style={styles.label}>Correo</Text>
           <View style={styles.inputContainer}>
-            <TextInput style={styles.input} value="gera73.372@gmail.com" editable={false} />
+            <TextInput
+              style={styles.input}
+              value={email}
+              editable={false}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            />
             <TouchableOpacity>
               <Icon name="pencil" size={20} color="gray" />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Botón de cerrar sesión */}
+
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Icon name="log-out-outline" size={20} color="white" />
           <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
@@ -166,13 +182,14 @@ const Profile = () => {
 
 export default Profile;
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
   header: {
-    paddingTop: 70, // Espacio en la parte superior para el header
+    paddingTop: 60, // Espacio en la parte superior para el header
     backgroundColor: '#007AFF',
     alignItems: 'center',
     paddingVertical: 30,
@@ -232,12 +249,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  input: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
-    marginRight: 10,
-  },
+input: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#000',
+  marginRight: 10,
+  maxWidth: 180, // Ajusta este valor según sea necesario
+},
+
   logoutButton: {
     backgroundColor: '#FF3B30',
     paddingVertical: 15,

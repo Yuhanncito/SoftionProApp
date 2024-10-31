@@ -8,6 +8,9 @@ export default function WorkspacesLayout() {
         <Stack.Screen name="[workspaceId]" />
         <Stack.Screen name="ProjectDetails" />
         <Stack.Screen name="BoardView" />
+        <Stack.Screen name="detailsproject" />
+        <Stack.Screen name="detailsWorkspace" />
+        <Stack.Screen name="detailsTask" />
       </Stack>
     </GestureHandlerRootView>
   );

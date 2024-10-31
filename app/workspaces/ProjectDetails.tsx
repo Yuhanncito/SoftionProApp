@@ -1,24 +1,31 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { useLocalSearchParams, router } from 'expo-router';
-import BoardView from './BoardView'; // Importa la vista del Tablero
-import { getProjects } from '@/api';
-import { useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Para recuperar el token
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  TextInput,
+} from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
+import { useLocalSearchParams, router } from "expo-router";
+import BoardView from "./BoardView"; // Importa la vista del Tablero
+import { getProjects } from "@/api";
+import { useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Para recuperar el token
 
 const ProjectDetails = () => {
   const { projectId } = useLocalSearchParams();
-  const [activeTab, setActiveTab] = useState('Lista'); // Estado para la pestaña activa
+  const [activeTab, setActiveTab] = useState("Lista"); // Estado para la pestaña activa
   const [Task, setTask] = useState(null);
 
   const fetchTasks = async () => {
-    const token = await AsyncStorage.getItem('authToken');
-    console.log('token',token);
-    const Task = await getProjects(token,projectId);
+    const token = await AsyncStorage.getItem("authToken");
+    console.log("token", token);
+    const Task = await getProjects(token, projectId);
     setTask(Task);
-    console.log('datos ts',Task);
-  }
+    console.log("datos ts", Task);
+  };
 
   useEffect(() => {
     fetchTasks();
@@ -34,11 +41,17 @@ const ProjectDetails = () => {
     <View style={styles.container}>
       {/* Header con el nombre del proyecto y flecha de regreso */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
           <Icon name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{Task?.nameProject}</Text>
-        <TouchableOpacity style={styles.infoButton}>
+        <TouchableOpacity
+          style={styles.infoButton}
+          onPress={() => router.push("/workspaces/detailsproject")}
+        >
           <Icon name="information-circle-outline" size={24} color="white" />
         </TouchableOpacity>
       </View>
@@ -46,22 +59,50 @@ const ProjectDetails = () => {
       {/* Pestañas (Lista y Tablero) */}
       <View style={styles.tabs}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'Lista' ? styles.activeTab : null]}
-          onPress={() => setActiveTab('Lista')}>
-          <Text style={activeTab === 'Lista' ? styles.activeTabText : styles.inactiveTabText}>Lista</Text>
+          style={[styles.tab, activeTab === "Lista" ? styles.activeTab : null]}
+          onPress={() => setActiveTab("Lista")}
+        >
+          <Text
+            style={
+              activeTab === "Lista"
+                ? styles.activeTabText
+                : styles.inactiveTabText
+            }
+          >
+            Lista
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'Tablero' ? styles.activeTab : null]}
-          onPress={() => setActiveTab('Tablero')}>
-          <Text style={activeTab === 'Tablero' ? styles.activeTabText : styles.inactiveTabText}>Tablero</Text>
+          style={[
+            styles.tab,
+            activeTab === "Tablero" ? styles.activeTab : null,
+          ]}
+          onPress={() => setActiveTab("Tablero")}
+        >
+          <Text
+            style={
+              activeTab === "Tablero"
+                ? styles.activeTabText
+                : styles.inactiveTabText
+            }
+          >
+            Tablero
+          </Text>
         </TouchableOpacity>
       </View>
 
       {/* Contenido dinámico según la pestaña seleccionada */}
-      {activeTab === 'Lista' ? (
+      {activeTab === "Lista" ? (
         <>
+          {/* Campo de entrada para crear nueva tarea */}
+
           {/* Lista de tareas */}
           <Text style={styles.title}>Tareas: {Task?.tasks.length}</Text>
+          <TextInput
+            style={styles.newTaskInput}
+            placeholder="Crea una nueva tarea"
+            placeholderTextColor="#888"
+          />
           <FlatList
             data={Task?.tasks}
             keyExtractor={(item) => item._id.toString()}
@@ -70,10 +111,16 @@ const ProjectDetails = () => {
                 <TouchableOpacity onPress={() => toggleTaskExpansion(item.id)}>
                   <View style={styles.taskHeader}>
                     <Text style={styles.taskTitle}>{item.nameTask}</Text>
-                    <Text style={styles.taskInfo}>Horas: {item.timeHoursTaks}</Text>
+                    <Text style={styles.taskInfo}>
+                      Horas: {item.timeHoursTaks}
+                    </Text>
                     <Text style={styles.taskStatus}>{item.status}</Text>
                     <Icon
-                      name={expandedTaskId === item.id ? 'chevron-up' : 'chevron-down'}
+                      name={
+                        expandedTaskId === item.id
+                          ? "chevron-up"
+                          : "chevron-down"
+                      }
                       size={24}
                       color="#007AFF"
                     />
@@ -81,9 +128,11 @@ const ProjectDetails = () => {
                 </TouchableOpacity>
                 {expandedTaskId === item.id && (
                   <View style={styles.expandedContent}>
-                    <Text style={styles.taskDescription}>Descripción: {item.descriptionTask}</Text>
+                    <Text style={styles.taskDescription}>
+                      Descripción: {item.descriptionTask}
+                    </Text>
                     <View style={styles.actionButtons}>
-                      <TouchableOpacity style={styles.editButton}>
+                      <TouchableOpacity onPress={() => router.push('/workspaces/detailsTask')} style={styles.editButton}>
                         <Icon name="pencil" size={20} color="white" />
                         <Text style={styles.buttonText}>Editar</Text>
                       </TouchableOpacity>
@@ -99,7 +148,7 @@ const ProjectDetails = () => {
           />
         </>
       ) : (
-        <BoardView /> // Mostrar la vista del Tablero
+        <BoardView tareas={Task?.tasks} /> // Mostrar la vista del Tablero
       )}
 
       {/* Botón para agregar nueva tarea */}
@@ -115,31 +164,31 @@ export default ProjectDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   header: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     padding: 15,
-    paddingTop: 40,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingTop: 60,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   backButton: {
     marginRight: 10,
   },
   headerTitle: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   infoButton: {
     marginLeft: 10,
   },
   tabs: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    justifyContent: "center",
+    backgroundColor: "#fff",
     paddingVertical: 10,
   },
   tab: {
@@ -147,53 +196,63 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 3,
-    borderBottomColor: '#007AFF',
+    borderBottomColor: "#007AFF",
     paddingBottom: 5,
   },
   activeTabText: {
-    color: '#007AFF',
-    fontWeight: 'bold',
+    color: "#007AFF",
+    fontWeight: "bold",
     fontSize: 16,
   },
   inactiveTabText: {
-    color: '#888',
+    color: "#888",
     fontSize: 16,
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginVertical: 10,
     marginLeft: 15,
   },
+  newTaskInput: {
+    height: 40,
+    borderColor: "#ddd",
+    borderWidth: 1,
+    borderRadius: 10,
+    marginHorizontal: 15,
+    paddingHorizontal: 10,
+    backgroundColor: "#fff",
+    marginBottom: 10,
+  },
   taskCard: {
-    backgroundColor: '#fff',
-    padding: 20, // Aumentamos el padding para que la tarjeta sea más grande
-    marginHorizontal: 15, // Ajustamos el margen para que ocupe más espacio horizontalmente
+    backgroundColor: "#fff",
+    padding: 20,
+    marginHorizontal: 15,
     borderRadius: 10,
     marginBottom: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
   },
   taskHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   taskTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     flex: 1,
   },
   taskInfo: {
     fontSize: 16,
-    color: '#555',
+    color: "#555",
   },
   taskStatus: {
     fontSize: 14,
-    color: '#007AFF',
+    color: "#007AFF",
     marginLeft: 10,
   },
   expandedContent: {
@@ -201,35 +260,35 @@ const styles = StyleSheet.create({
   },
   taskDescription: {
     fontSize: 14,
-    color: '#777',
+    color: "#777",
     marginBottom: 10,
   },
   actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   editButton: {
-    flexDirection: 'row',
-    backgroundColor: '#007AFF',
+    flexDirection: "row",
+    backgroundColor: "#007AFF",
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
   deleteButton: {
-    flexDirection: 'row',
-    backgroundColor: '#FF3B30',
+    flexDirection: "row",
+    backgroundColor: "#FF3B30",
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
-    color: 'white',
+    color: "white",
     marginLeft: 5,
   },
   addButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     right: 20,
   },

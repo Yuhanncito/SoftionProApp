@@ -1,18 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const BoardView = () => {
-  // Estado con las tareas
-  const [tasks, setTasks] = useState([
-    { id: 1, name: 'Diseño del mapa de navegación', hours: 5, status: 'Pendiente', description: 'Diseño del mapa de navegación de la app...' },
-    { id: 2, name: 'Diseño de las pantallas', hours: 5, status: 'Iniciado', description: 'Diseño de pantallas que contendrá la app de SoftionPro para entornos WEB...' },
-    { id: 3, name: 'Pruebas funcionales', hours: 5, status: 'Concluido', description: 'Realizar pruebas funcionales de la app...' },
-  ]);
+const BoardView = ({tareas}) => {
+
+  const [tasks, setTasks] = useState(tareas);
 
   // Función para cambiar el estado de la tarea cuando se mueve
-  const handleDragEnd = ({ data, from, to }) => {
+  const handleDragEnd = ( data : any, from : any, to : any ) => {
     const updatedTasks = [...tasks];
 
     // Mover la tarea al nuevo índice y actualizar su estado en función de la sección
@@ -32,7 +28,7 @@ const BoardView = () => {
   };
 
   // Filtrar tareas por estado
-  const tasksByStatus = (status) => tasks.filter(task => task.status === status);
+  const tasksByStatus = (status) => tareas.filter(task => task.status === status);
 
   // Renderizar la tarjeta de la tarea
   const renderTaskCard = ({ item, drag, isActive }) => (
@@ -44,15 +40,19 @@ const BoardView = () => {
       onLongPress={drag}
     >
       <View style={styles.taskHeader}>
-        <Text style={styles.taskTitle}>{item.name}</Text>
+        <Text style={styles.taskTitle}>{item.nameTask}</Text>
         <TouchableOpacity>
           <Icon name="close-circle" size={24} color="red" />
         </TouchableOpacity>
       </View>
-      <Text style={styles.taskInfo}>Horas: {item.hours}</Text>
+      <Text style={styles.taskInfo}>Horas: {item.timeHoursTaks}</Text>
       <Text style={styles.taskStatus}>{item.status}</Text>
     </TouchableOpacity>
   );
+
+  useEffect(() => {
+    console.log("tareas en el tablero: ",tareas);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -61,7 +61,7 @@ const BoardView = () => {
       <DraggableFlatList
         data={tasksByStatus('Pendiente')}
         renderItem={renderTaskCard}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item._id.toString()}
         onDragEnd={handleDragEnd}
       />
 
@@ -70,7 +70,7 @@ const BoardView = () => {
       <DraggableFlatList
         data={tasksByStatus('Iniciado')}
         renderItem={renderTaskCard}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item._id.toString()}
         onDragEnd={handleDragEnd}
       />
 
@@ -79,7 +79,7 @@ const BoardView = () => {
       <DraggableFlatList
         data={tasksByStatus('Concluido')}
         renderItem={renderTaskCard}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item._id.toString()}
         onDragEnd={handleDragEnd}
       />
     </View>
