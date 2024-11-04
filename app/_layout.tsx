@@ -51,7 +51,7 @@ const StactPublic = () => {
     </Stack>
   );
 };
-     
+
 const StackPrivate = () => {
   return (
     <Stack screenOptions={{ headerShown: false }} initialRouteName="/(home)" >
