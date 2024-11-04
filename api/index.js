@@ -1,6 +1,31 @@
 export const BASEURL = 'https://softion-api-v3.vercel.app/api';
 
 
+export const sendImagen = async (token , imagen64) => {
+    try {
+        const response = await fetch(`${BASEURL}/auth/update`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': token
+            },
+            body: JSON.stringify({
+                imagen: imagen64
+            }), // Convierte los datos a JSON
+        });
+        const data = await response.json()
+
+        if( data.message !== 'ok' ){
+            return { success: false, message: data.message };
+        }
+        return { success: true, data: data }
+    }
+
+    catch (error) {
+        return { success: false, message: 'Error en la solicitud de registro' };
+    }
+}
+
 export const RegisterFunction = async (data) => {
     try {
         const response = await fetch(`${BASEURL}/auth/signup`, {
@@ -236,4 +261,3 @@ export const getInvitations = async (user, token) => {
       return {};
     }
   };
-  
