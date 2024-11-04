@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { getWorkSpacesById, createNewProject } from '@/api';
+import { getWorkSpacesById, createNewProject, deleteProject } from '@/api'; // Asegúrate de importar deleteProject
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const WorkSpaceProjects = () => {
@@ -10,14 +10,14 @@ const WorkSpaceProjects = () => {
   const [Workspace, setWorkspace] = useState(null);
   const [newProjectName, setNewProjectName] = useState('');
   const [projectsSuccess, setProjectsSuccess] = useState(false);
-  const [loading, setLoading] = useState(true); // Estado de carga
+  const [loading, setLoading] = useState(true);
 
   const fetchWorkspaces = async () => {
-    setLoading(true); // Iniciar el estado de carga
+    setLoading(true);
     const token = await AsyncStorage.getItem('authToken');
     const workspaces = await getWorkSpacesById(token, workspaceId);
     setWorkspace(workspaces);
-    setLoading(false); // Terminar el estado de carga
+    setLoading(false);
   };
 
   const handleAddProject = async () => {
@@ -43,20 +43,37 @@ const WorkSpaceProjects = () => {
   };
 
   const handleDeleteProject = async (projectId) => {
-    try {
-      const token = await AsyncStorage.getItem('authToken');
-      const result = await deleteProject(token, projectId);
-
-      if (result.message === 'ok') {
-        Alert.alert('Proyecto eliminado', 'El proyecto ha sido eliminado exitosamente');
-        setProjectsSuccess((prev) => !prev);
-      } else {
-        Alert.alert('Error', 'Ocurrió un error al eliminar el proyecto');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Ocurrió un error al eliminar el proyecto');
-    }
+    Alert.alert(
+      "Eliminar Proyecto",
+      "¿Estás seguro de que deseas eliminar este proyecto?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem('authToken');
+              const result = await deleteProject(token, projectId, workspaceId);
+              
+              // Log para verificar la respuesta
+              console.log("Resultado de eliminación:", result);
+  
+              if (result.message === 'ok') {
+                Alert.alert('Proyecto eliminado', 'El proyecto ha sido eliminado exitosamente');
+                setProjectsSuccess((prev) => !prev); // Actualiza la lista de proyectos
+              } else {
+                Alert.alert('Error', 'Ocurrió un error al eliminar el proyecto');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Ocurrió un error al eliminar el proyecto');
+            }
+          }
+        }
+      ]
+    );
   };
+  
 
   useEffect(() => {
     fetchWorkspaces();
@@ -79,7 +96,7 @@ const WorkSpaceProjects = () => {
           <Icon name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.workspaceTitle}>WorkSpace de {Workspace?.propetaryUser.name}</Text>
-        <TouchableOpacity onPress={() => router.push('/workspaces/detailsWorkspace')} style={styles.infoButton}>
+        <TouchableOpacity onPress={() => router.push({pathname: '/workspaces/detailsWorkspace', params: { workspaceId: workspaceId }})} style={styles.infoButton}>
           <Icon name="information-circle-outline" size={24} color="white" />
         </TouchableOpacity>
       </View>
@@ -106,7 +123,7 @@ const WorkSpaceProjects = () => {
               onPress={() =>
                 router.push({
                   pathname: '/workspaces/ProjectDetails',
-                  params: { projectId: item._id },
+                  params: { projectId: item._id, WorkUser: Workspace.propetaryUser.name },
                 })
               }
             >
@@ -134,6 +151,7 @@ const WorkSpaceProjects = () => {
 };
 
 export default WorkSpaceProjects;
+
 
 const styles = StyleSheet.create({
   container: {

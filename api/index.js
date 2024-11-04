@@ -201,6 +201,26 @@ export const createNewProject = async (user, data) => {
     }
 }
 
+export const deleteProject = async (user, id, idWorkspace) => {
+    try{
+        const response = await fetch(`${BASEURL}/projects/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': user
+            },
+            body: JSON.stringify({
+                workspaceid : idWorkspace
+            })
+        })
+        const result = await response.json()
+        return result
+    }catch(error){
+        console.log(error)
+        return {}
+    }
+}
+
 export const acceptInvitation = async (user, token) => {
     try{
         const response = await fetch(`${BASEURL}/invitation/${user}`, {
@@ -221,19 +241,37 @@ export const acceptInvitation = async (user, token) => {
 
 export const getInvitations = async (user, token) => {
     try {
-      console.log(`Fetching invitations for user: ${user} with token: ${token}`);
-      const response = await fetch(`${BASEURL}/invitation/${user}`, {
+    console.log(`Fetching invitations for user: ${user} with token: ${token}`);
+    const response = await fetch(`${BASEURL}/invitation/${user}`, {
         headers: {
-          'Content-Type': 'application/json',
-          'x-access-token': token
+        'Content-Type': 'application/json',
+        'x-access-token': token
         }
-      });
-      const result = await response.json();
-      console.log('Invitations result:', result);
-      return result;
+    });
+    const result = await response.json();
+    console.log('Invitations result:', result);
+    return result;
     } catch (error) {
-      console.log('Error fetching invitations:', error);
-      return {};
+    console.log('Error fetching invitations:', error);
+    return {};
     }
-  };
-  
+};
+
+export const sendInvitation = async (user, data) => {
+    try{
+        const response = await fetch(`${BASEURL}/invitation`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': user
+            },
+            body: JSON.stringify(data)
+        })
+        const result = await response.json()
+        console.log(result)
+        return result
+    }catch(error){
+        console.log(error)
+        return {}
+    }
+}

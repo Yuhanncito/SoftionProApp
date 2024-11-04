@@ -28,7 +28,6 @@ export default function RootLayout() {
     checkToken(); // Verificamos el token al inicio
   }, [token]);
 
-
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
