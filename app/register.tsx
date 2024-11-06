@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'; // Para validar el formulario
 import { RegisterFunction } from '../api'; // Función de registro
 import { SelectList } from 'react-native-dropdown-select-list'; // Importa Dropdown Select List
 import { useLocalSearchParams, router } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 /**
  * Pantalla de registro de usuario
