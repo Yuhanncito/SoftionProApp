@@ -25,16 +25,16 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
-
-      - name: Instalar Dependencias
-        run: npm install
+          node-version: '16'  # Actualizado a la versión 16
 
       - name: Configurar Caché
         uses: actions/cache@v2
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+      - name: Instalar Dependencias
+        run: npm install
 
       - name: Comentar en PR
         if: github.event_name == 'pull_request'
@@ -55,16 +55,21 @@ jobs:
     steps: 
       - name: Checkout Código 
         uses: actions/checkout@v2 
+
       - name: Configurar Node.js 
         uses: actions/setup-node@v2 
         with: 
-          node-version: '14' 
+          node-version: '16' 
+
       - name: Instalar Dependencias 
         run: npm install 
 
+      - name: Instalar jest-expo globalmente
+        run: npm install -g jest-expo
+
       # Ejecutar las pruebas
       - name: Ejecutar Pruebas
-        run: npm test 
+        run: npm test
 
   notify-on-success:
     runs-on: ubuntu-latest
