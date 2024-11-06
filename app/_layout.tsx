@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Stack, router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import '../global.css'
 
 export default function RootLayout() {
   const [loading, setLoading] = useState(true);
@@ -27,7 +28,6 @@ export default function RootLayout() {
     checkToken(); // Verificamos el token al inicio
   }, [token]);
 
-
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -51,7 +51,7 @@ const StactPublic = () => {
     </Stack>
   );
 };
-     
+
 const StackPrivate = () => {
   return (
     <Stack screenOptions={{ headerShown: false }} initialRouteName="/(home)" >

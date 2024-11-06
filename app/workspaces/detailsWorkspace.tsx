@@ -1,22 +1,75 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, SafeAreaView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, SafeAreaView, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { sendInvitation, getWorkSpacesById } from '@/api';
+import { useLocalSearchParams } from 'expo-router';
 
 const InviteUserScreen = () => {
+  const { workspaceId } = useLocalSearchParams();
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const participants = [
-    { id: '1', name: 'Usuario Anónimo', email: 'correo@correo.com' },
-    { id: '2', name: 'Usuario Anónimo', email: 'correo@correo.com' },
-  ];
+  const [Workspace, setWorkspace] = useState(null);
+  const [participants, setParticipants] = useState([]);
+
+  const fetchWorkspaceData = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const workspaces = await getWorkSpacesById(token, workspaceId);
+      console.log("Workspace data:", workspaces); // Verifica la estructura del objeto
+      setWorkspace(workspaces);
+      setParticipants(workspaces.participates || []); // Asegura que 'participates' esté definido
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Error', 'Ocurrió un error al obtener los datos del workspace');
+    }
+  };
+
+  useEffect(() => {
+    fetchWorkspaceData();
+  }, []);
+
+  const handleInvite = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Por favor ingresa un correo electrónico.');
+      return;
+    }
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) {
+        Alert.alert('Error', 'No se encontró el token de autenticación');
+        return;
+      }
+      const data = {
+        workSpace: workspaceId,
+        email,
+      };
+      const result = await sendInvitation(token, data);
+
+      if (result.message === 'Invitación enviada correctamente') {
+        Alert.alert('Éxito', 'Invitación enviada correctamente');
+        setEmail('');
+        fetchWorkspaceData();
+      } else {
+        Alert.alert('Error', result.message || 'No se pudo enviar la invitación');
+      }
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Error', 'Ocurrió un error al enviar la invitación');
+    }
+  };
 
   const renderParticipant = ({ item }) => (
     <View style={styles.participantCard}>
       <Icon name="person-circle-outline" size={40} color="#555" />
       <View style={styles.participantInfo}>
-        <Text style={styles.participantName}>{item.name}</Text>
-        <Text style={styles.participantEmail}>{item.email}</Text>
+        <Text style={styles.participantName}>
+          {item.user?.name || "Sin Nombre"} {item.user?.lastName || ""}
+        </Text>
+        <Text style={styles.participantEmail}>
+          {item.user?.email || "Sin Correo"}
+        </Text>
       </View>
       <TouchableOpacity>
         <Icon name="close-circle" size={24} color="red" />
@@ -26,35 +79,33 @@ const InviteUserScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>WorkSpace de Gize</Text>
+        <Text style={styles.headerTitle}>
+          WorkSpace de {Workspace?.propetaryUser?.name || "Propietario Desconocido"}
+        </Text>
       </View>
 
-      {/* Invite User Section */}
       <View style={styles.inviteContainer}>
         <Text style={styles.inviteTitle}>Invitar Usuario</Text>
         <Text style={styles.inviteSubtitle}>Correo</Text>
-
         <TextInput
           style={styles.input}
           placeholder="correo@correo.com"
           value={email}
           onChangeText={setEmail}
         />
-        <TouchableOpacity style={styles.inviteButton}>
+        <TouchableOpacity style={styles.inviteButton} onPress={handleInvite}>
           <Text style={styles.inviteButtonText}>Invitar</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Participants List */}
       <Text style={styles.participantsTitle}>Participantes</Text>
       <FlatList
         data={participants}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.user?._id || item.id}
         renderItem={renderParticipant}
         contentContainerStyle={styles.participantsList}
       />
@@ -64,29 +115,30 @@ const InviteUserScreen = () => {
 
 export default InviteUserScreen;
 
+
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#f5f5f5',
-    }, 
-    header: {
-      paddingTop: 60, // Espacio en la parte superior para el header
-      backgroundColor: '#007AFF',
-      paddingVertical: 15,
-      alignItems: 'center',
-      flexDirection: 'row',
-    },
-    backButton: {
-      paddingHorizontal: 10,
-      marginLeft: 10,
-    },
-    headerTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: 'white',
-      flex: 1,
-      textAlign: 'center',
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
+    paddingTop: 60,
+    backgroundColor: '#007AFF',
+    paddingVertical: 15,
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  backButton: {
+    paddingHorizontal: 10,
+    marginLeft: 10,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+    flex: 1,
+    textAlign: 'center',
+  },
   inviteContainer: {
     backgroundColor: '#fff',
     borderRadius: 15,
@@ -105,7 +157,6 @@ const styles = StyleSheet.create({
     color: 'black',
     marginBottom: 10,
     fontWeight: 'bold',
-
   },
   inviteTitle: {
     fontSize: 18,

@@ -1,45 +1,70 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { router } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
+import { getProjects } from '@/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ProjectInfoScreen = () => {
-  const [description, setDescription] = useState("Diseño de pantallas que contendrá la app de SoftionPro para entornos WEBs que funcionen de manera responsiva y sean accesibles para cualquier dispositivo.");
-  const [status, setStatus] = useState("Pendiente");
-  const tasks = [
-    { id: '1', name: 'Diseño del mapa de Navegación', hours: 5, status: 'Pendiente' },
-    { id: '2', name: 'Diseño del mapa de Navegación', hours: 5, status: 'Pendiente' }
-  ];
+  const { projectId, WorkUser } = useLocalSearchParams(); // Obtenemos el projectId como parámetro
+  const [project, setProject] = useState(null); // Estado para los datos del proyecto
+  const [loading, setLoading] = useState(true); // Estado para el indicador de carga
+
+  const fetchProjectData = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const projectData = await getProjects(token, projectId); // Llama a la API para obtener los datos del proyecto
+      setProject(projectData); // Guarda los datos del proyecto en el estado
+      setLoading(false); // Finaliza la carga
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Error', 'Ocurrió un error al obtener los datos del proyecto');
+      setLoading(false); // Finaliza la carga en caso de error
+    }
+  };
+
+  useEffect(() => {
+    fetchProjectData();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text>Cargando...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Icon name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Proyecto 22</Text>
+        <Text style={styles.headerTitle}>{project?.nameProject}</Text>
       </View>
 
       {/* Descripción */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Gera</Text>
+        <Text style={styles.sectionTitle}>Descripción</Text>
         <TouchableOpacity style={styles.editIcon}>
           <Icon name="pencil" size={20} color="black" />
         </TouchableOpacity>
-        <Text style={styles.sectionContent}>{description}</Text>
+        <Text style={styles.sectionContent}>{project?.description || "Sin descripción"}</Text>
       </View>
 
       {/* Tareas */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Tareas</Text>
         <FlatList
-          data={tasks}
-          keyExtractor={(item) => item.id}
+          data={project?.tasks}
+          keyExtractor={(item) => item._id.toString()}
           renderItem={({ item }) => (
             <View style={styles.taskCard}>
-              <Text style={styles.taskTitle}>{item.name}</Text>
-              <Text style={styles.taskInfo}>Horas: {item.hours}</Text>
+              <Text style={styles.taskTitle}>{item.nameTask}</Text>
+              <Text style={styles.taskInfo}>Horas: {item.timeHoursTaks}</Text>
               <Text style={styles.taskStatus}>{item.status}</Text>
               <TouchableOpacity style={styles.deleteIcon}>
                 <Icon name="close-circle-outline" size={20} color="red" />
@@ -55,13 +80,13 @@ const ProjectInfoScreen = () => {
         <TouchableOpacity style={styles.editIcon}>
           <Icon name="pencil" size={20} color="black" />
         </TouchableOpacity>
-        <Text style={styles.sectionContent}>{status}</Text>
+        <Text style={styles.sectionContent}>{project?.status}</Text>
       </View>
 
       {/* Área de trabajo */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Área de trabajo</Text>
-        <Text style={styles.sectionContent}>WorkSpace de Gize</Text>
+        <Text style={styles.sectionContent}>WorkSpace de {WorkUser || "Desconocido"}</Text>
       </View>
 
       {/* Botón Guardar */}
@@ -79,6 +104,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   header: {
     alignItems: 'center',
     marginBottom: 20,
@@ -92,10 +122,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#007AFF',
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#333',
   },
   section: {
     backgroundColor: '#fff',

@@ -1,98 +1,77 @@
-import React, { useEffect, useState } from "react";  // Asegúrate de importar React
-import { StyleSheet, Text, View, TouchableOpacity, Alert, BackHandler, ActivityIndicator } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; // Para los iconos
-import { useRouter, useFocusEffect } from 'expo-router'; // Importar el hook useRouter y useFocusEffect
+import React, { useEffect, useState, useCallback } from "react";
+import { StyleSheet, Text, View, TouchableOpacity, Alert, BackHandler, ActivityIndicator, FlatList, RefreshControl } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { useRouter, useFocusEffect } from 'expo-router';
 import OrganismoCard from '@/components/organismos/organismo_card';
-import { getUserData, getWorkSpaces } from '../../api/index'; // Importar la función que realiza la llamada a la API
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Para recuperar el token
+import { getUserData, getWorkSpaces } from '../../api/index';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const IndexScreen = () => {
-  const router = useRouter(); // Usar el hook de Expo Router
-
-  // Estado para almacenar los workspaces obtenidos desde la API
-  const [workspaces, setWorkspaces] = useState([]); // Cambiar null a []
+  const router = useRouter();
+  const [workspaces, setWorkspaces] = useState([]);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Estado para el indicador de carga
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Manejar el evento de retroceso
   useFocusEffect(
     React.useCallback(() => {
       const backAction = () => {
         Alert.alert("Salir", "¿Estás seguro de que quieres salir de la aplicación?", [
-          {
-            text: "Cancelar",
-            onPress: () => null,
-            style: "cancel"
-          },
+          { text: "Cancelar", onPress: () => null, style: "cancel" },
           { text: "Salir", onPress: () => BackHandler.exitApp() }
         ]);
         return true;
       };
 
       const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
-
-      // Cleanup function: Eliminar el listener cuando la pantalla pierda el foco
       return () => backHandler.remove();
     }, [])
   );
 
-  // useEffect para llamar a la API cuando el componente se monta
+  const fetchWorkspaces = async () => {
+    setRefreshing(true);
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) {
+        console.log("No se encontró el token.");
+        return;
+      }
+      const data = await getWorkSpaces(token);
+      setWorkspaces(data);
+    } catch (error) {
+      console.log("Error fetching workspaces:", error);
+      setWorkspaces([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const fetchUser = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) {
+        console.log("No se encontró el token.");
+        return;
+      }
+      const data = await getUserData(token);
+      console.log("cosas del usuario",data);
+      setUser(data.user);
+    } catch (error) {
+      console.log("Error fetching user:", error);
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
-    // Función asíncrona para obtener los datos de workspaces  // Función asíncrona para obtener los datos de workspaces
-    const fetchWorkspaces = async () => {
-      try {
-        // Recupera el token desde AsyncStorage
-        const token = await AsyncStorage.getItem('authToken');
-        
-        if (!token) {
-          console.log("No se encontró el token.");
-          return;
-        }
-        
-        // Llamada a la API usando el token recuperado
-        const data = await getWorkSpaces(token); 
-        console.log("data",data[0].projects);
-        setWorkspaces(data);
-      
-      } catch (error) {
-        console.log("Error fetching workspaces:", error);
-        setWorkspaces([]); // Setear a un array vacío en caso de error
-      } finally {
-        setLoading(false); // Dejar de mostrar el indicador de carga
-      }
-    };
-
-    const fetchUser = async () => {
-      try {
-        // Recupera el token desde AsyncStorage
-        const token = await AsyncStorage.getItem('authToken');
-        
-        if (!token) {
-          console.log("No se encontró el token.");
-          return;
-        }
-        
-        // Llamada a la API usando el token recuperado
-        const data = await getUserData(token); 
-
-        console.log("usuario encotnrado",data.user);
-        setUser(data.user);
-      
-      } catch (error) {
-        console.log("Error fetching workspaces:", error);
-        setWorkspaces([]); // Setear a un array vacío en caso de error
-      } finally {
-        setLoading(false); // Dejar de mostrar el indicador de carga
-      }
-    };
-  
-    fetchWorkspaces(); // Ejecutar la función para obtener los workspaces
+    fetchWorkspaces();
     fetchUser();
   }, []);
 
-  
+  const onRefresh = useCallback(() => {
+    fetchWorkspaces();
+  }, []);
 
-  // Si aún está cargando, mostrar un indicador de carga
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -104,34 +83,34 @@ const IndexScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header personalizado */}
-     { user && <View style={styles.header}>
-        <Icon name="person-circle" size={50} color="white" />
-        <View style={styles.headerTextContainer}>
-          <Text style={styles.welcomeText}>Bienvenido de nuevo</Text>
-          <Text style={styles.userName}>{`${user.name} ${user.lastName}`}</Text>
+      {user && (
+        <View style={styles.header}>
+          <Icon name="person-circle" size={50} color="white" />
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.welcomeText}>Bienvenido de nuevo</Text>
+            <Text style={styles.userName}>{`${user.name} ${user.lastName}`}</Text>
+          </View>
+          <TouchableOpacity onPress={() => router.push('/Notifications')}>
+            <Icon name="notifications" size={30} color="white" style={styles.bellIcon} />
+          </TouchableOpacity>
         </View>
-  
-        {/* Botón de notificaciones con navegación */}
-        <TouchableOpacity onPress={() => router.push('/Notifications')}>
-          <Icon name="notifications" size={30} color="white" style={styles.bellIcon} />
-        </TouchableOpacity>
-      </View>}
-  
-      {/* Contenido principal */}
-      { workspaces && <View style={styles.mainContent}>
+      )}
+      <View style={styles.mainContent}>
         <Text style={styles.workAreasText}>Áreas de trabajo</Text>
-  
-        {/* Organismos de trabajo */}
-        
 
-        {workspaces && user && workspaces.map((workspace, index) => (
-          <OrganismoCard key={index} workspace={workspace} userLogged={user.email} />
-        ))}
-      
-      </View>}
+        <FlatList
+          data={workspaces}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <OrganismoCard workspace={item} userLogged={user.email} />
+          )}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        />
+      </View>
     </View>
-  );  
+  );
 };
 
 export default IndexScreen;
@@ -142,9 +121,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: '#007AFF', // Fondo azul
+    backgroundColor: '#007AFF',
     padding: 15,
-    paddingTop: 60, // Espacio en la parte superior para el header
+    paddingTop: 60,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -166,17 +145,17 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    paddingHorizontal: 20, // Añadir padding para la consistencia en todo el contenido
+    paddingHorizontal: 20,
     backgroundColor: '#f5f5f5',
   },
   workAreasText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#000',
-    marginTop: 20, // Ajusta el margen superior para que se vea mejor
-    marginBottom: 15, // Espacio debajo del título
-    textAlign: 'left', // Alinear a la izquierda
-    alignSelf: 'flex-start', // Mantener el título a la izquierda
+    marginTop: 20,
+    marginBottom: 15,
+    textAlign: 'left',
+    alignSelf: 'flex-start',
   },
   loaderContainer: {
     flex: 1,

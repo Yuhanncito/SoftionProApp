@@ -15,7 +15,7 @@ import { useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Para recuperar el token
 
 const ProjectDetails = () => {
-  const { projectId } = useLocalSearchParams();
+  const { projectId, WorkUser } = useLocalSearchParams();
   const [activeTab, setActiveTab] = useState("Lista"); // Estado para la pestaña activa
   const [Task, setTask] = useState(null);
 
@@ -50,7 +50,12 @@ const ProjectDetails = () => {
         <Text style={styles.headerTitle}>{Task?.nameProject}</Text>
         <TouchableOpacity
           style={styles.infoButton}
-          onPress={() => router.push("/workspaces/detailsproject")}
+          onPress={() => 
+            router.push({
+              pathname: "/workspaces/detailsproject",
+              params: { projectId: projectId, WorkUser: WorkUser },
+            })
+          }          
         >
           <Icon name="information-circle-outline" size={24} color="white" />
         </TouchableOpacity>
