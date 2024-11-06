@@ -319,3 +319,33 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+import { Button } from 'react-native';
+
+export const Longinn = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  return (
+    <View>
+      <Text>Longinnn</Text>
+
+      <Text>Correo electrónicoc</Text>
+      <TextInput
+        placeholder="Ingrese su correoo"
+        value={email}
+        onChangeText={setEmail}
+      />
+
+      <Text>Contraseñaa</Text>
+      <TextInput
+        placeholder="Ingrese su contraseñaa"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+
+      <Button title="Iniciar Sesiónn" onPress={() => console.log('Iniciar sesión')} />
+    </View>
+  );
+};
