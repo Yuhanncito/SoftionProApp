@@ -384,3 +384,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
   },
 });
+
+
+export const Perfiil = () => {
+  return (
+    <View>
+      <Text>Perfiil</Text>
+    </View>
+  );
+}

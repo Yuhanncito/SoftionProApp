@@ -344,3 +344,42 @@ const styles = StyleSheet.create({
 });
 
 export default Register;
+
+
+import { Button } from 'react-native';
+
+export const Registerrr = () => {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  return (
+    <View>
+      <Text>Register</Text>
+
+      <Text>Nombre de usuarioo</Text>
+      <TextInput
+        placeholder="Ingrese su nombre de usuarioo"
+        value={username}
+        onChangeText={setUsername}
+      />
+
+      <Text>Correoo electrónicoc</Text>
+      <TextInput
+        placeholder="Ingrese su correoo"
+        value={email}
+        onChangeText={setEmail}
+      />
+
+      <Text>Contraseñaa</Text>
+      <TextInput
+        placeholder="Ingrese su contraseñaa"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+
+      <Button title="Registrarsee" onPress={() => console.log('Registro iniciado')} />
+    </View>
+  );
+};
