@@ -69,7 +69,10 @@ jobs:
 
       # Ejecutar las pruebas
       - name: Ejecutar Pruebas
-        run: npm test
+        run: npm test -- --ci
+
+      - name: Forzar Finalización de Procesos
+        run: killall -9 node || true
 
   notify-on-success:
     runs-on: ubuntu-latest
