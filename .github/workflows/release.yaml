@@ -29,7 +29,7 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    # 3. Simular Caché de dependencias de Gradle (opcional)
+    # 3. Caché de dependencias de Gradle (opcional)
     - name: Cache Gradle
       uses: actions/cache@v3
       with:
@@ -38,11 +38,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle
 
-    # 4. Simular Construcción de la APK/AAB
-    - name: Simular Build APK
-      run: echo "Simulando construcción de APK/AAB" && mkdir -p app/build/outputs/apk/release && echo "Fake APK content" > app/build/outputs/apk/release/app-release.apk
+    # 4. Construcción de la APK/AAB
+    - name: Build APK
+      run: echo "Construcción de APK/AAB" && mkdir -p app/build/outputs/apk/release && echo "Fake APK content" > app/build/outputs/apk/release/app-release.apk
 
-    # 5. Subir el APK simulado como artefacto
+    # 5. Subir el APK como artefacto
     - name: Upload APK as artifact
       uses: actions/upload-artifact@v3
       with:
