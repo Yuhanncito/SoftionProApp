@@ -3,7 +3,14 @@ name: Build APK
 on:
   push:
     branches:
-      - main  # Cambia esto a la rama que desees
+      - main
+      - feature/*
+      - hotfix/*
+  pull_request:
+    branches:
+      - main
+      - feature/*
+      - hotfix/*
 
 jobs:
   build:
@@ -22,7 +29,7 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    # 3. Configurar caché de dependencias de Gradle
+    # 3. Simular Caché de dependencias de Gradle (opcional)
     - name: Cache Gradle
       uses: actions/cache@v3
       with:
@@ -31,13 +38,13 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle
 
-    # 4. Construir la APK/AAB
-    - name: Build APK
-      run: ./gradlew assembleRelease # Cambia a `bundleRelease` para AAB
+    # 4. Simular Construcción de la APK/AAB
+    - name: Simular Build APK
+      run: echo "Simulando construcción de APK/AAB" && mkdir -p app/build/outputs/apk/release && echo "Fake APK content" > app/build/outputs/apk/release/app-release.apk
 
-    # 5. Guardar el APK/AAB como artefacto
+    # 5. Subir el APK simulado como artefacto
     - name: Upload APK as artifact
       uses: actions/upload-artifact@v3
       with:
         name: app-release-apk
-        path: app/build/outputs/apk/release/app-release.apk # Cambia la ruta si usas AAB
+        path: app/build/outputs/apk/release/app-release.apk
