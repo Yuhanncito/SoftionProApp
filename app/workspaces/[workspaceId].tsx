@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { getWorkSpacesById, createNewProject, deleteProject } from '@/api'; // Asegúrate de importar deleteProject
+import { getWorkSpacesById, createNewProject, deleteProject } from '@/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const WorkSpaceProjects = () => {
   const { workspaceId } = useLocalSearchParams();
   const [Workspace, setWorkspace] = useState(null);
   const [newProjectName, setNewProjectName] = useState('');
-  const [projectsSuccess, setProjectsSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false); // Estado para el control de recarga
 
   const fetchWorkspaces = async () => {
     setLoading(true);
@@ -20,24 +20,39 @@ const WorkSpaceProjects = () => {
     setLoading(false);
   };
 
+  // Función para la recarga al deslizar hacia abajo
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchWorkspaces();
+    setRefreshing(false);
+  };
+
   const handleAddProject = async () => {
     if (newProjectName.trim()) {
       try {
         const token = await AsyncStorage.getItem('authToken');
         const newProjectData = { nameProject: newProjectName, workspaceid: workspaceId };
+  
+        const newProject = { _id: Date.now().toString(), nameProject: newProjectName, tasks: [], status: 'Nuevo' };
+        setWorkspace(prev => ({
+          ...prev,
+          projects: [...prev.projects, newProject]
+        }));
+  
         const result = await createNewProject(token, newProjectData);
-
-        if (result.message !== 'ok') {
+  
+        if (result.message === 'ok') {
+          Alert.alert('Proyecto creado', 'Se ha creado el proyecto exitosamente');
+          fetchWorkspaces();
+        } else {
           Alert.alert('Error', 'Ocurrió un error al crear el proyecto');
-          setProjectsSuccess(false);
-          return;
+          fetchWorkspaces();
         }
-
-        setProjectsSuccess(true);
-        Alert.alert('Proyecto creado', 'Se ha creado el proyecto exitosamente');
+  
         setNewProjectName('');
       } catch (error) {
         Alert.alert('Error', 'Ocurrió un error al crear el proyecto');
+        fetchWorkspaces();
       }
     }
   };
@@ -56,12 +71,12 @@ const WorkSpaceProjects = () => {
               const token = await AsyncStorage.getItem('authToken');
               const result = await deleteProject(token, projectId, workspaceId);
               
-              // Log para verificar la respuesta
-              console.log("Resultado de eliminación:", result);
-  
               if (result.message === 'ok') {
                 Alert.alert('Proyecto eliminado', 'El proyecto ha sido eliminado exitosamente');
-                setProjectsSuccess((prev) => !prev); // Actualiza la lista de proyectos
+                setWorkspace(prev => ({
+                  ...prev,
+                  projects: prev.projects.filter(project => project._id !== projectId)
+                }));
               } else {
                 Alert.alert('Error', 'Ocurrió un error al eliminar el proyecto');
               }
@@ -73,21 +88,10 @@ const WorkSpaceProjects = () => {
       ]
     );
   };
-  
 
   useEffect(() => {
     fetchWorkspaces();
-  }, [projectsSuccess]);
-
-  // Mostrar indicador de carga si los datos aún están cargando
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Cargando...</Text>
-      </View>
-    );
-  }
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -123,7 +127,7 @@ const WorkSpaceProjects = () => {
               onPress={() =>
                 router.push({
                   pathname: '/workspaces/ProjectDetails',
-                  params: { projectId: item._id, WorkUser: Workspace.propetaryUser.name },
+                  params: { projectId: item._id, WorkUser: Workspace.propetaryUser.name, workspaceId: workspaceId },
                 })
               }
             >
@@ -141,6 +145,9 @@ const WorkSpaceProjects = () => {
             </TouchableOpacity>
           </View>
         )}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
 
       <TouchableOpacity style={styles.addButton} onPress={handleAddProject}>
@@ -151,7 +158,6 @@ const WorkSpaceProjects = () => {
 };
 
 export default WorkSpaceProjects;
-
 
 const styles = StyleSheet.create({
   container: {

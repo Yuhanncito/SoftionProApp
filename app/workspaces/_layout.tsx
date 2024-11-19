@@ -11,8 +11,10 @@ export default function WorkspacesLayout() {
         <Stack.Screen name="detailsproject" />
         <Stack.Screen name="detailsWorkspace" />
         <Stack.Screen name="detailsTask" />
+        <Stack.Screen name="PaymentModal" />
+        <Stack.Screen name="UpgradePlanModal" />
+        <Stack.Screen name="createTask" />
       </Stack>
     </GestureHandlerRootView>
   );
 }
- 

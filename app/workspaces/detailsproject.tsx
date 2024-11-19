@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useLocalSearchParams, router } from 'expo-router';
 import { getProjects } from '@/api';
@@ -26,15 +26,6 @@ const ProjectInfoScreen = () => {
   useEffect(() => {
     fetchProjectData();
   }, []);
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Cargando...</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>

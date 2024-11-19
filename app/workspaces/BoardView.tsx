@@ -1,41 +1,83 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { updateTask } from '@/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BoardView = ({tareas}) => {
-
+const BoardView = ({ tareas }) => {
   const [tasks, setTasks] = useState(tareas);
 
-  // Función para cambiar el estado de la tarea cuando se mueve
-  const handleDragEnd = ( data : any, from : any, to : any ) => {
+  const handleDragEnd = async ({ data, from, to, section }) => {
     const updatedTasks = [...tasks];
-
-    // Mover la tarea al nuevo índice y actualizar su estado en función de la sección
     const taskToMove = updatedTasks[from];
-    if (to < tasksByStatus('Pendiente').length) {
-      taskToMove.status = 'Pendiente';
-    } else if (to < tasksByStatus('Pendiente').length + tasksByStatus('Iniciado').length) {
-      taskToMove.status = 'Iniciado';
-    } else {
-      taskToMove.status = 'Concluido';
+  
+    // Calculate section boundaries for each status
+    const pendienteLimit = tasksByStatus('Pendiente').length;
+    const iniciadoLimit = pendienteLimit + tasksByStatus('Iniciado').length;
+  
+    // Determine new status based on the section where the task is dropped
+    let newStatus;
+    switch (section) {
+      case 'Pendiente':
+        newStatus = 'Pendiente';
+        break;
+      case 'Iniciado':
+        newStatus = 'Iniciado';
+        break;
+      case 'Concluido':
+        newStatus = 'Concluido';
+        break;
+      default:
+        return;
     }
-
-    updatedTasks.splice(from, 1);
-    updatedTasks.splice(to, 0, taskToMove);
-
-    setTasks(updatedTasks); // Actualiza el estado de las tareas
+  
+    // Only update if the status actually changes
+    if (taskToMove.status !== newStatus) {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) {
+        Alert.alert('Error', 'Token no encontrado');
+        return;
+      }
+  
+      // Prepare the updated task data to send to the backend
+      const updatedTaskData = { ...taskToMove, status: newStatus };
+      try {
+        const result = await updateTask(token, updatedTaskData);
+        if (result.message === 'ok') {
+          // Update the local status of the task
+          taskToMove.status = newStatus;
+  
+          // Update the positions within local state
+          updatedTasks.splice(from, 1); // Remove the task from the original position
+          updatedTasks.splice(to, 0, taskToMove); // Insert the task into the new position
+  
+          // Update the task list state with reordered tasks
+          setTasks(updatedTasks);
+          Alert.alert('Éxito', 'Estado de la tarea actualizado correctamente');
+        } else {
+          Alert.alert('Error', 'No se pudo actualizar el estado de la tarea en el servidor');
+        }
+      } catch (error) {
+        console.error("Error updating task status:", error);
+        Alert.alert("Error", "Hubo un problema al actualizar la tarea en el servidor.");
+      }
+    } else {
+      // If the status didn't change, update local positions only
+      updatedTasks.splice(from, 1);
+      updatedTasks.splice(to, 0, taskToMove);
+      setTasks(updatedTasks);
+    }
   };
+  
 
-  // Filtrar tareas por estado
-  const tasksByStatus = (status) => tareas.filter(task => task.status === status);
+  const tasksByStatus = (status) => tasks.filter(task => task.status === status);
 
-  // Renderizar la tarjeta de la tarea
   const renderTaskCard = ({ item, drag, isActive }) => (
     <TouchableOpacity
       style={[
         styles.taskCard,
-        { backgroundColor: isActive ? '#f0f0f0' : '#fff' } // Cambia el color de fondo cuando se arrastra
+        { backgroundColor: isActive ? '#f0f0f0' : '#fff' }
       ]}
       onLongPress={drag}
     >
@@ -51,38 +93,41 @@ const BoardView = ({tareas}) => {
   );
 
   useEffect(() => {
-    console.log("tareas en el tablero: ",tareas);
+    console.log("Tareas en el tablero: ", tareas);
   }, []);
 
   return (
-    <View style={styles.container}>
-      {/* Sección Pendiente */}
+    <ScrollView style={styles.container}>
       <Text style={styles.sectionHeader}>Pendiente</Text>
-      <DraggableFlatList
-        data={tasksByStatus('Pendiente')}
-        renderItem={renderTaskCard}
-        keyExtractor={(item) => item._id.toString()}
-        onDragEnd={handleDragEnd}
-      />
+      <View style={[styles.scrollContainer, styles.pendienteContainer]}>
+        <DraggableFlatList
+          data={tasksByStatus('Pendiente')}
+          renderItem={(props) => renderTaskCard({ ...props, section: 'Pendiente' })}
+          keyExtractor={(item) => item._id.toString()}
+          onDragEnd={({ data, from, to }) => handleDragEnd({ data, from, to, section: 'Pendiente' })}
+        />
+      </View>
 
-      {/* Sección Iniciado */}
       <Text style={styles.sectionHeader}>Iniciado</Text>
-      <DraggableFlatList
-        data={tasksByStatus('Iniciado')}
-        renderItem={renderTaskCard}
-        keyExtractor={(item) => item._id.toString()}
-        onDragEnd={handleDragEnd}
-      />
+      <View style={[styles.scrollContainer, styles.iniciadoContainer]}>
+        <DraggableFlatList
+          data={tasksByStatus('Iniciado')}
+          renderItem={(props) => renderTaskCard({ ...props, section: 'Iniciado' })}
+          keyExtractor={(item) => item._id.toString()}
+          onDragEnd={({ data, from, to }) => handleDragEnd({ data, from, to, section: 'Iniciado' })}
+        />
+      </View>
 
-      {/* Sección Concluido */}
       <Text style={styles.sectionHeader}>Concluido</Text>
-      <DraggableFlatList
-        data={tasksByStatus('Concluido')}
-        renderItem={renderTaskCard}
-        keyExtractor={(item) => item._id.toString()}
-        onDragEnd={handleDragEnd}
-      />
-    </View>
+      <View style={[styles.scrollContainer, styles.concluidoContainer]}>
+        <DraggableFlatList
+          data={tasksByStatus('Concluido')}
+          renderItem={(props) => renderTaskCard({ ...props, section: 'Concluido' })}
+          keyExtractor={(item) => item._id.toString()}
+          onDragEnd={({ data, from, to }) => handleDragEnd({ data, from, to, section: 'Concluido' })}
+        />
+      </View>
+    </ScrollView>
   );
 };
 
@@ -99,6 +144,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#007AFF',
     marginVertical: 10,
+  },
+  scrollContainer: {
+    maxHeight: 300, // Limits the height of each scroll container
+  },
+  pendienteContainer: {
+    backgroundColor: 'red', // Red background for the "Pendiente" section
+  },
+  iniciadoContainer: {
+    backgroundColor: 'blue', // Blue background for the "Iniciado" section
+  },
+  concluidoContainer: {
+    backgroundColor: 'green', // Green background for the "Concluido" section
   },
   taskCard: {
     backgroundColor: '#fff',

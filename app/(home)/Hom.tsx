@@ -1,8 +1,12 @@
+// screens/IndexScreen.js
+
+// Importación del ícono adicional
 import React, { useEffect, useState, useCallback } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Alert, BackHandler, ActivityIndicator, FlatList, RefreshControl } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import OrganismoCard from '@/components/organismos/organismo_card';
+import UpgradePlanModal from '../workspaces/UpgradePlanModal'; // Cambia a usar el nuevo modal
 import { getUserData, getWorkSpaces } from '../../api/index';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -12,6 +16,7 @@ const IndexScreen = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -55,7 +60,7 @@ const IndexScreen = () => {
         return;
       }
       const data = await getUserData(token);
-      console.log("cosas del usuario",data);
+      console.log("cosas del usuario", data);
       setUser(data.user);
     } catch (error) {
       console.log("Error fetching user:", error);
@@ -72,15 +77,14 @@ const IndexScreen = () => {
     fetchWorkspaces();
   }, []);
 
-  if (loading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Cargando áreas de trabajo...</Text>
-      </View>
-    );
-  }
+  const openUpgradeModal = () => {
+    setModalVisible(true);
+  };
 
+  const closeUpgradeModal = () => {
+    setModalVisible(false);
+  };
+  
   return (
     <View style={styles.container}>
       {user && (
@@ -102,19 +106,30 @@ const IndexScreen = () => {
           data={workspaces}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
-            <OrganismoCard workspace={item} userLogged={user.email} />
+            <OrganismoCard workspace={item} userLogged={user ? user.email : ""} />
           )}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
+          ListFooterComponent={
+            <TouchableOpacity style={styles.addButton} onPress={openUpgradeModal}>
+              <Icon name="add-circle" size={24} color="white" style={styles.addIcon} />
+              <Text style={styles.addButtonText}>Agregar Workspace</Text>
+            </TouchableOpacity>
+          }
         />
+
       </View>
+
+      {/* Usar el UpgradePlanModal */}
+      <UpgradePlanModal visible={modalVisible} onClose={closeUpgradeModal} />
     </View>
   );
 };
 
 export default IndexScreen;
 
+// styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -161,5 +176,31 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#007AFF',  // Color azul personalizado
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginTop: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
+  },
+  addIcon: {
+    marginRight: 8,
+  },
+  addButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });

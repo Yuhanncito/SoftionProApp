@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,158 +6,209 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
+  Alert,
+  RefreshControl,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useLocalSearchParams, router } from "expo-router";
-import BoardView from "./BoardView"; // Importa la vista del Tablero
-import { getProjects } from "@/api";
-import { useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Para recuperar el token
+import { useFocusEffect } from "@react-navigation/native";
+import { getProjects, insertNewTask, deleteTask, getWorkSpacesById } from "@/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProjectDetails = () => {
-  const { projectId, WorkUser } = useLocalSearchParams();
-  const [activeTab, setActiveTab] = useState("Lista"); // Estado para la pestaña activa
+  const { projectId, WorkUser, workspaceId } = useLocalSearchParams();
   const [Task, setTask] = useState(null);
+  const [expandedTaskId, setExpandedTaskId] = useState(null);
+  const [newTaskName, setNewTaskName] = useState("");
+  const [Workspace, setWorkspace] = useState(null);
+  const [refreshing, setRefreshing] = useState(false); // Estado para la recarga
 
   const fetchTasks = async () => {
     const token = await AsyncStorage.getItem("authToken");
-    console.log("token", token);
-    const Task = await getProjects(token, projectId);
-    setTask(Task);
-    console.log("datos ts", Task);
+    if (!token) {
+      console.log("Token no encontrado");
+      return;
+    }
+    const projectTasks = await getProjects(token, projectId);
+    const workspaces = await getWorkSpacesById(token, workspaceId);
+    setWorkspace(workspaces);
+    setTask(projectTasks);
   };
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchTasks();
+    setRefreshing(false);
+  };
 
-  const [expandedTaskId, setExpandedTaskId] = useState(null);
+  useFocusEffect(
+    useCallback(() => {
+      fetchTasks();
+    }, [])
+  );
 
   const toggleTaskExpansion = (taskId) => {
     setExpandedTaskId(expandedTaskId === taskId ? null : taskId);
   };
 
+  const handleAddTask = async () => {
+    if (!newTaskName.trim()) {
+      Alert.alert("Error", "El nombre de la tarea es obligatorio.");
+      return;
+    }
+
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const newTaskData = {
+        projectRelation: projectId,
+        nameTask: newTaskName,
+        descriptionTask: "",
+        timeHoursTaks: 0,
+        status: "Pendiente",
+        workspaceid: workspaceId,
+      };
+
+      const result = await insertNewTask(token, newTaskData);
+
+      if (result.message === "ok") {
+        setNewTaskName("");
+        fetchTasks();
+        Alert.alert("Éxito", "Tarea creada correctamente.");
+      } else {
+        Alert.alert("Error", result.message || "No se pudo agregar la tarea.");
+      }
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Error", "Hubo un problema al agregar la tarea.");
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    Alert.alert(
+      "Eliminar Tarea",
+      "¿Estás seguro de que deseas eliminar esta tarea?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem("authToken");
+              const result = await deleteTask(token, taskId, workspaceId);
+
+              if (result.message === "ok") {
+                setTask((prevTask) => ({
+                  ...prevTask,
+                  tasks: prevTask.tasks.filter((task) => task._id !== taskId),
+                }));
+                Alert.alert("Éxito", "Tarea eliminada correctamente.");
+              } else {
+                Alert.alert("Error", result.message || "No se pudo eliminar la tarea.");
+              }
+            } catch (error) {
+              console.log(error);
+              Alert.alert("Error", "Hubo un problema al eliminar la tarea.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
-      {/* Header con el nombre del proyecto y flecha de regreso */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{Task?.nameProject}</Text>
         <TouchableOpacity
           style={styles.infoButton}
-          onPress={() => 
+          onPress={() =>
             router.push({
               pathname: "/workspaces/detailsproject",
               params: { projectId: projectId, WorkUser: WorkUser },
             })
-          }          
+          }
         >
           <Icon name="information-circle-outline" size={24} color="white" />
         </TouchableOpacity>
       </View>
 
-      {/* Pestañas (Lista y Tablero) */}
-      <View style={styles.tabs}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "Lista" ? styles.activeTab : null]}
-          onPress={() => setActiveTab("Lista")}
-        >
-          <Text
-            style={
-              activeTab === "Lista"
-                ? styles.activeTabText
-                : styles.inactiveTabText
-            }
-          >
-            Lista
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === "Tablero" ? styles.activeTab : null,
-          ]}
-          onPress={() => setActiveTab("Tablero")}
-        >
-          <Text
-            style={
-              activeTab === "Tablero"
-                ? styles.activeTabText
-                : styles.inactiveTabText
-            }
-          >
-            Tablero
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Contenido dinámico según la pestaña seleccionada */}
-      {activeTab === "Lista" ? (
-        <>
-          {/* Campo de entrada para crear nueva tarea */}
-
-          {/* Lista de tareas */}
-          <Text style={styles.title}>Tareas: {Task?.tasks.length}</Text>
-          <TextInput
-            style={styles.newTaskInput}
-            placeholder="Crea una nueva tarea"
-            placeholderTextColor="#888"
-          />
-          <FlatList
-            data={Task?.tasks}
-            keyExtractor={(item) => item._id.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.taskCard}>
-                <TouchableOpacity onPress={() => toggleTaskExpansion(item.id)}>
-                  <View style={styles.taskHeader}>
-                    <Text style={styles.taskTitle}>{item.nameTask}</Text>
-                    <Text style={styles.taskInfo}>
-                      Horas: {item.timeHoursTaks}
-                    </Text>
-                    <Text style={styles.taskStatus}>{item.status}</Text>
-                    <Icon
-                      name={
-                        expandedTaskId === item.id
-                          ? "chevron-up"
-                          : "chevron-down"
-                      }
-                      size={24}
-                      color="#007AFF"
-                    />
-                  </View>
-                </TouchableOpacity>
-                {expandedTaskId === item.id && (
-                  <View style={styles.expandedContent}>
-                    <Text style={styles.taskDescription}>
-                      Descripción: {item.descriptionTask}
-                    </Text>
-                    <View style={styles.actionButtons}>
-                      <TouchableOpacity onPress={() => router.push('/workspaces/detailsTask')} style={styles.editButton}>
-                        <Icon name="pencil" size={20} color="white" />
-                        <Text style={styles.buttonText}>Editar</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.deleteButton}>
-                        <Icon name="trash" size={20} color="white" />
-                        <Text style={styles.buttonText}>Eliminar</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
+      <Text style={styles.title}>Tareas: {Task?.tasks.length}</Text>
+      <TextInput
+        style={styles.newTaskInput}
+        placeholder="Crea una nueva tarea"
+        placeholderTextColor="#888"
+        value={newTaskName}
+        onChangeText={setNewTaskName}
+        onSubmitEditing={handleAddTask}
+      />
+      <FlatList
+        data={Task?.tasks}
+        keyExtractor={(item) => item._id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.taskCard}>
+            <TouchableOpacity onPress={() => toggleTaskExpansion(item._id)}>
+              <View style={styles.taskHeader}>
+                <Text style={styles.taskTitle}>{item.nameTask}</Text>
+                <Text style={styles.taskInfo}>Horas: {item.timeHoursTaks}</Text>
+                <Text style={styles.taskStatus}>{item.status}</Text>
+                <Icon
+                  name={expandedTaskId === item._id ? "chevron-up" : "chevron-down"}
+                  size={24}
+                  color="#007AFF"
+                />
+              </View>
+            </TouchableOpacity>
+            {expandedTaskId === item._id && (
+              <View style={styles.expandedContent}>
+                <Text style={styles.taskDescription}>Descripción: {item.descriptionTask}</Text>
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    onPress={() =>
+                      router.push({
+                        pathname: '/workspaces/detailsTask',
+                        params: { 
+                          projectId: projectId, 
+                          WorkUser: WorkUser, 
+                          workspaceId: workspaceId,
+                          taskId: item._id // Pasar el ID de la tarea seleccionada
+                        }
+                      })
+                    }
+                    style={styles.editButton}
+                  >
+                    <Icon name="pencil" size={20} color="white" />
+                    <Text style={styles.buttonText}>Editar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    onPress={() => handleDeleteTask(item._id)} 
+                    style={styles.deleteButton}
+                  >
+                    <Icon name="trash" size={20} color="white" />
+                    <Text style={styles.buttonText}>Eliminar</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
-          />
-        </>
-      ) : (
-        <BoardView tareas={Task?.tasks} /> // Mostrar la vista del Tablero
-      )}
+          </View>
+        )}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      />
 
-      {/* Botón para agregar nueva tarea */}
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() =>
+          router.push({
+            pathname: "/workspaces/createTask",
+            params: { projectId: projectId, WorkUser: WorkUser, workspaceId: workspaceId },
+          })
+        }
+      >
         <Icon name="add-circle" size={48} color="#007AFF" />
       </TouchableOpacity>
     </View>
@@ -166,6 +217,7 @@ const ProjectDetails = () => {
 
 export default ProjectDetails;
 
+// Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -189,29 +241,6 @@ const styles = StyleSheet.create({
   },
   infoButton: {
     marginLeft: 10,
-  },
-  tabs: {
-    flexDirection: "row",
-    justifyContent: "center",
-    backgroundColor: "#fff",
-    paddingVertical: 10,
-  },
-  tab: {
-    marginHorizontal: 20,
-  },
-  activeTab: {
-    borderBottomWidth: 3,
-    borderBottomColor: "#007AFF",
-    paddingBottom: 5,
-  },
-  activeTabText: {
-    color: "#007AFF",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  inactiveTabText: {
-    color: "#888",
-    fontSize: 16,
   },
   title: {
     fontSize: 20,

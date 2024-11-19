@@ -294,6 +294,101 @@ export const sendInvitation = async (user, data) => {
         })
         const result = await response.json()
         console.log(result)
+        return result 
+    }catch(error){
+        console.log(error)
+        return {}
+    }
+}
+
+export const getTasks = async (user, id) => {
+    try{
+        const response = await fetch(`${BASEURL}/task/${id}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': user
+            }
+        })
+        const result = await response.json()
+        console.log(result)
+        return result
+    }catch(error){
+        console.log(error)
+        return {}
+    }
+}
+
+export const getTaskById = async (user, id) => {
+    try{
+        const response = await fetch(`${BASEURL}/task/${id}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': user
+            }
+        })
+        const result = await response.json()
+        return result
+    }catch(error){
+        console.log(error)
+        return {}
+    }
+}
+
+export const insertNewTask = async (user, data) => {
+    try{
+        const response = await fetch(`${BASEURL}/task/newTask`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': user
+            },
+            body: JSON.stringify(data)
+        })
+        
+        const result = await response.json()
+        return result
+    }catch(error){
+        console.log(error)
+        return {}
+    }
+} 
+
+export const deleteTask = async (token, id, workspaceid) => {
+    
+    const body = {
+        workspaceid:workspaceid
+    }
+
+    try{
+        const response = await fetch(`${BASEURL}/task/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': token
+            },
+            body: JSON.stringify(body)
+        })
+        const result = await response.json()
+        console.log(result)
+        return result
+    }catch(error){
+        console.log(error)
+        return {}
+    }
+}
+
+export const updateTask = async (user, data) => {
+    try{
+        const response = await fetch(`${BASEURL}/task/${data._id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': user
+            },
+            body: JSON.stringify(data)
+        })
+        const result = await response.json()
+        console.log(result)
         return result
     }catch(error){
         console.log(error)

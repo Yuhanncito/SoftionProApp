@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 import { Stack, router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import '../global.css'
@@ -23,18 +23,10 @@ export default function RootLayout() {
         setLoading(false);
       }
     };
-  
+       
         
     checkToken(); // Verificamos el token al inicio
   }, [token]);
-
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
-    );
-  }
 
   return ( token ? <StackPrivate /> : <StactPublic /> );
 }

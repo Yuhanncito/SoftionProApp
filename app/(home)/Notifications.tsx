@@ -2,7 +2,7 @@ import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, ScrollView, Bac
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getInvitations, acceptInvitation } from '../../api/index';
+import { getInvitations, acceptInvitation } from '../../api/';
 
 const NotificationCard = ({ name, onAccept, onReject }) => (
   <View style={styles.card}>
