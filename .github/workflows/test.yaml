@@ -69,7 +69,7 @@ jobs:
 
       # Ejecutar las pruebas
       - name: Ejecutar Pruebas
-        run: npm test -- --ci
+        run: npm test
 
       # Forzar finalización de procesos de Jest
       - name: Finalizar Proceso de Jest
