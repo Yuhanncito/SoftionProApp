@@ -4,20 +4,17 @@
     "slug": "my-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "newArchEnabled": true,
     "ios": {
-      "infoPlist": {
-        "NSCameraUsageDescription": "Esta aplicación requiere acceso a la cámara para tomar fotos.",
-        "NSPhotoLibraryUsageDescription": "Esta aplicación requiere acceso a tu galería para seleccionar imágenes."
-      }},
+      "supportsTablet": true
+      },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
