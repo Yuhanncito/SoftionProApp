@@ -49,33 +49,33 @@ jobs:
               body: 'Se han realizado cambios en este PR. Por favor, revisen.'
             })
 
-run-tests: 
-  runs-on: ubuntu-latest 
-  needs: [setup] 
-  steps: 
-    - name: Checkout Código 
-      uses: actions/checkout@v2 
+  run-tests: 
+    runs-on: ubuntu-latest 
+    needs: [setup] 
+    steps: 
+      - name: Checkout Código 
+        uses: actions/checkout@v2 
 
-    - name: Configurar Node.js 
-      uses: actions/setup-node@v2 
-      with: 
-        node-version: '16' 
+      - name: Configurar Node.js 
+        uses: actions/setup-node@v2 
+        with: 
+          node-version: '16' 
 
-    - name: Instalar Dependencias 
-      run: npm install 
+      - name: Instalar Dependencias 
+        run: npm install 
 
-    - name: Instalar jest-expo globalmente
-      run: npm install -g jest-expo
+      - name: Instalar jest-expo globalmente
+        run: npm install -g jest-expo
 
-    # Ejecutar las pruebas
-    - name: Ejecutar Pruebas
-      run: npm test -- --ci
+      # Ejecutar las pruebas
+      - name: Ejecutar Pruebas
+        run: npm test -- --ci
 
-    # Forzar finalización de procesos inmediatamente después de las pruebas
-    - name: Forzar Finalización de Procesos
-      run: |
-        echo "Finalizando procesos de Node.js"
-        killall -9 node || true
+      # Forzar finalización de procesos de Jest
+      - name: Finalizar Proceso de Jest
+        run: |
+          echo "Finalizando proceso de Jest"
+          kill $(ps aux | grep '[j]est' | awk '{print $2}') || true
 
 
   notify-on-success:
