@@ -3,11 +3,9 @@ import { Modal, Portal, Provider } from 'react-native-paper'
 import { StatusBar } from 'react-native';
 import { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, Dimensions, ScrollView } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BASEURL } from '../api';
 import { router } from 'expo-router';
-import OrganismoCard from '@/components/organismos/organismo_card';
-
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 const index = () => {
 
   interface UserSchema {
@@ -55,8 +53,10 @@ const index = () => {
         if (json.message === 'correcto' || json.message === 'Tienes un Código Activo') {
           showModal('Inicio de sesión exitoso', json.message);
           setTimeout(() => {
-            router.navigate('/verify-email');
-            router.setParams({ email: user.email , option: 'Login' });
+            router.push({
+              pathname: '/verify-email',
+              params: { email: user.email, option: 'Login' },
+            });            
             hideModal();
           }, 2000); // Navega a la pantalla 'VerifyEmail' tras 2 segundos
         } else {
